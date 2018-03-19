@@ -7,11 +7,16 @@ import (
 	luajson "layeh.com/gopher-json"
 )
 
+type SValue struct {
+	Name string   `json:"name" lt:"name"`
+	List []string `json:"list" lt:"list"`
+}
 type Demo struct {
 	ResourceID string  `json:"resource_id" lt:"resource_id"`
 	Value      int64   `json:"value" lt:"value"`
 	IsEnable   bool    `json:"is_enable" lt:"is_enable"`
 	FValue     float64 `json:"f_value" lt:"f_value"`
+	SValue     *SValue `json:"s_value" lt:"s_value"`
 }
 
 // Hello 测试方法
@@ -21,6 +26,10 @@ func Hello(L *lua.LState) int {
 		Value:      123214,
 		IsEnable:   true,
 		FValue:     1.23,
+		SValue: &SValue{
+			Name: "dasd",
+			List: []string{"dasda", "b"},
+		},
 	}
 	table := NewLTable(L, value)
 	L.Push(table)
