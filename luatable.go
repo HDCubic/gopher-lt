@@ -21,9 +21,12 @@ func toLValue(L *lua.LState, value reflect.Value) (lua.LValue, bool) {
 		return lua.LNumber(value.Float()), value.Float() == 0
 	case reflect.Slice:
 		v := L.NewTable()
+		//vs := []lua.LValue{}
 		for i := 0; i < value.Len(); i++ {
 			lv, _ := toLValue(L, value.Index(i))
-			v.RawSet(lua.LNumber(i), lv)
+			//vs = append(vs, lv)
+			v.RawSetInt(i+1, lv)
+			//v.RawSet(lua.LNumber(i), lv)
 		}
 		return v, value.Len() == 0
 	case reflect.Ptr:

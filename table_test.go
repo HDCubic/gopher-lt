@@ -28,7 +28,7 @@ func Hello(L *lua.LState) int {
 		FValue:     1.23,
 		SValue: &SValue{
 			Name: "dasd",
-			List: []string{"dasda", "b"},
+			List: []string{"1", "2", "3", "4", "5"},
 		},
 	}
 	table := NewLTable(L, value)
@@ -45,6 +45,12 @@ func TestNewLTable(t *testing.T) {
 	json = require("json")
 	t = hello()
 	for k, v in pairs(t) do
+		print(k, v)
+	end
+	for k, v in pairs(t.s_value) do
+		print(k, v)
+	end
+	for k, v in pairs(t.s_value.list) do
 		print(k, v)
 	end
 	print(json.encode(t))
