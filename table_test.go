@@ -1,6 +1,7 @@
 package lt
 
 import (
+	"fmt"
 	"testing"
 
 	lua "github.com/yuin/gopher-lua"
@@ -38,9 +39,10 @@ func Build(L *lua.LState) int {
 
 // Parse 解析lua.LTable
 func Parse(L *lua.LState) int {
-	t := L.ToTable(0)
+	t := L.ToTable(1)
 	value := Demo{}
-	FromLValue(L, t, &value)
+	err := FromLTable(t, &value)
+	fmt.Println(value, err)
 	return 0
 }
 

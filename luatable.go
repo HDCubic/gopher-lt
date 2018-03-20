@@ -3,6 +3,7 @@ package lt
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 
 	lua "github.com/yuin/gopher-lua"
 )
@@ -48,11 +49,6 @@ func toLValue(L *lua.LState, value reflect.Value) (lua.LValue, bool) {
 	return NewLTable(L, value.Interface()), false
 }
 
-//fromLValue 转换成实际值并判断是否为空
-func fromLValue(L *lua.LState, value *lua.LValue) interface{} {
-	return nil
-}
-
 // NewLTable 从value生成一个lua table
 func NewLTable(L *lua.LState, value interface{}) *lua.LTable {
 	t := L.NewTable()
@@ -69,19 +65,73 @@ func NewLTable(L *lua.LState, value interface{}) *lua.LTable {
 	return t
 }
 
-// FromLValue 从lua table 绑定object
-func FromLValue(L *lua.LState, t *lua.LTable, value interface{}) {
-	vt := reflect.TypeOf(value)
-	//vv := reflect.ValueOf(value)
-	fmt.Println(vt.String(), vt.Kind())
-	switch vt.Kind() {
-	case reflect.String:
-	case reflect.Bool:
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-	case reflect.Float32, reflect.Float64:
-	case reflect.Slice:
-	case reflect.Ptr:
+func fromLVlaue(value lua.LValue) interface{} {
+	fmt.Println(value.Type())
+	switch value.Type() {
+	case lua.LTNumber:
+		fmt.Println("11111111", value)
+		return value
+	case lua.LTString:
+		fmt.Println("22222222", value)
+		return value
+	case lua.LTBool:
+		fmt.Println("33333333", value)
+		return value
+	case lua.LTNil:
+		fmt.Println("44444444", value)
+	case lua.LTTable:
+		fmt.Println("5555555", value)
+	}
+	return nil
+}
+
+// FromLTable 从lua table 绑定object
+func FromLTable(t *lua.LTable, value interface{}) error {
+	vv := reflect.ValueOf(value)
+	e := vv.Elem()
+	et := e.Type()
+	fmt.Println("AAAAAAAAAAAAAAAAAAAAAa", vv, e, et)
+	for i := 0; i < et.NumField(); i++ {
+		f := et.Field(i)
+		name := f.Tag.Get("lt")
+		v := t.RawGetString(name)
+		switch f.Type.Kind() {
+		case reflect.Int, reflect.Int32, reflect.Int64:
+			tv, err := strconv.ParseInt(v.String(), 10, 64)
+			if err != nil {
+				return err
+			}
+			e.Field(i).SetInt(tv)
+		case reflect.Uint, reflect.Uint32, reflect.Uint64:
+			tv, err := strconv.ParseUint(v.String(), 10, 64)
+			if err != nil {
+				return err
+			}
+			e.Field(i).SetUint(tv)
+		case reflect.Float32, reflect.Float64:
+			tv, err := strconv.ParseFloat(v.String(), 64)
+			if err != nil {
+				return err
+			}
+			e.Field(i).SetFloat(tv)
+		case reflect.Bool:
+			tv, err := strconv.ParseBool(v.String())
+			if err != nil {
+				return err
+			}
+			e.Field(i).SetBool(tv)
+		case reflect.Ptr:
+			fmt.Println("aaaaaaaaaaaaaaaa", v.Type(), name, f.Name)
+			switch v.Type() {
+			case lua.LTNil:
+			case lua.LTTable:
+				tv := e.Field(i).Elem()
+				fmt.Println(tv.Kind())
+				FromLTable(v.(*lua.LTable), &tv)
+			}
+		}
+		//fmt.Println(f.Name, name, v, f.Type.Kind())
+		//fromLVlaue(v)
 	}
 	//switch vt.Kind() {
 	//}
@@ -93,4 +143,5 @@ func FromLValue(L *lua.LState, t *lua.LTable, value interface{}) {
 	//	//v := t.RawGetString(name)
 	//	//fmt.Println(name, v.String())
 	//}
+	return nil
 }
