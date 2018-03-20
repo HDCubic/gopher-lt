@@ -1,6 +1,7 @@
 package lt
 
 import (
+	"fmt"
 	"reflect"
 
 	lua "github.com/yuin/gopher-lua"
@@ -47,6 +48,11 @@ func toLValue(L *lua.LState, value reflect.Value) (lua.LValue, bool) {
 	return NewLTable(L, value.Interface()), false
 }
 
+//fromLValue 转换成实际值并判断是否为空
+func fromLValue(L *lua.LState, value *lua.LValue) interface{} {
+	return nil
+}
+
 // NewLTable 从value生成一个lua table
 func NewLTable(L *lua.LState, value interface{}) *lua.LTable {
 	t := L.NewTable()
@@ -61,4 +67,30 @@ func NewLTable(L *lua.LState, value interface{}) *lua.LTable {
 		}
 	}
 	return t
+}
+
+// FromLValue 从lua table 绑定object
+func FromLValue(L *lua.LState, t *lua.LTable, value interface{}) {
+	vt := reflect.TypeOf(value)
+	//vv := reflect.ValueOf(value)
+	fmt.Println(vt.String(), vt.Kind())
+	switch vt.Kind() {
+	case reflect.String:
+	case reflect.Bool:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+	case reflect.Float32, reflect.Float64:
+	case reflect.Slice:
+	case reflect.Ptr:
+	}
+	//switch vt.Kind() {
+	//}
+	//vv := reflect.ValueOf(value)
+	//for i := 0; i < vt.NumField(); i++ {
+	//	fmt.Println(i)
+	//	//f := vt.Field(i)
+	//	//name := f.Tag.Get("lt")
+	//	//v := t.RawGetString(name)
+	//	//fmt.Println(name, v.String())
+	//}
 }

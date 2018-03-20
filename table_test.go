@@ -19,8 +19,8 @@ type Demo struct {
 	SValue     *SValue `json:"s_value" lt:"s_value"`
 }
 
-// Hello 测试方法
-func Hello(L *lua.LState) int {
+// Build 构造lua.LTable
+func Build(L *lua.LState) int {
 	value := Demo{
 		ResourceID: "3121412",
 		Value:      123214,
@@ -33,17 +33,26 @@ func Hello(L *lua.LState) int {
 	}
 	table := NewLTable(L, value)
 	L.Push(table)
-	return 1 /* number of results */
+	return 1
+}
+
+// Parse 解析lua.LTable
+func Parse(L *lua.LState) int {
+	t := L.ToTable(0)
+	value := Demo{}
+	FromLValue(L, t, &value)
+	return 0
 }
 
 func TestNewLTable(t *testing.T) {
 	L := lua.NewState()
 	defer L.Close()
 	luajson.Preload(L)
-	L.SetGlobal("hello", L.NewFunction(Hello))
+	L.SetGlobal("build", L.NewFunction(Build))
+	L.SetGlobal("parse", L.NewFunction(Parse))
 	if err := L.DoString(`
 	json = require("json")
-	t = hello()
+	t = build()
 	for k, v in pairs(t) do
 		print(k, v)
 	end
@@ -53,7 +62,11 @@ func TestNewLTable(t *testing.T) {
 	for k, v in pairs(t.s_value.list) do
 		print(k, v)
 	end
-	print(json.encode(t))
+	te = json.encode(t)
+	print(te)
+	td = json.decode(te)
+	print(td)
+	parse(td)
 	`); err != nil {
 		panic(err)
 	}
